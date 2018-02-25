@@ -1,0 +1,19 @@
+#
+# auto-rotate the screen and pointers
+# copyright 2018 Don Bowman (db@donbowman.ca)
+# Licensed under Apache License, Version 2.0
+#
+[Unit]
+Description=auto-rotate screen
+After=network.target
+
+[Service]
+Environment=DISPLAY=:0
+ExecStart=/home/don/bin/auto-rotate
+Restart=on-failure
+SuccessExitStatus=3 4
+RestartForceExitStatus=3 4
+
+[Install]
+WantedBy=default.target
+

@@ -1,0 +1,46 @@
+#!/bin/sh
+
+#
+# auto-rotate the screen and pointers
+# copyright 2018 Don Bowman (db@donbowman.ca)
+# Licensed under Apache License, Version 2.0
+
+pointers=$(xinput list | awk '/Virtual core pointer/ { printing=1 } /Virtual core keyboard/ { printing=0} { if (printing) { gsub(".*id=",""); print $1 } }')
+
+rotate_cursor() {
+    for p in $pointers
+    do
+        xinput set-prop $p "Coordinate Transformation Matrix" $*
+    done
+}
+
+monitor-sensor | awk '/Accelerometer orientation changed:/ { print $NF; fflush();}' | while read line
+do
+    # If we have external monitor connected, do not rotate
+    nscreens=$(xrandr  | grep -c " connected")
+    if [ $nscreens != 1 ]
+    then
+        line=normal
+    fi
+
+    # Set the actions to be taken for each possible orientation
+    case "$line" in
+        normal)
+            xrandr --output eDP-1 --rotate normal 
+            rotate_cursor 1 0 0 0 1 0 0 0 1
+            ;;
+        bottom-up)
+            xrandr --output eDP-1 --rotate inverted 
+            rotate_cursor -1 0 1 0 -1 1 0 0 1
+            ;;
+        right-up)
+            xrandr --output eDP-1 --rotate right 
+            rotate_cursor 0 1 0 -1 0 1 0 0 1
+            ;;
+        left-up)
+            xrandr --output eDP-1 --rotate left
+            rotate_cursor 0 -1 1 1 0 0 0 0 1
+            ;;
+    esac
+done
+exit 0
