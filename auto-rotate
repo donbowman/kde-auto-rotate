@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 # auto-rotate the screen and pointers
@@ -14,8 +14,38 @@ rotate_cursor() {
     done
 }
 
+
+monitor-sensor | while read line ; do
+
+  # Ignore any lines which are not rotation events
+  echo "$line" | grep "orientation" &> /dev/null
+  export ret="$?"
+  if [ "$ret" -ne "0" ] ; then
+    echo "SKIP"
+    continue
+  else
+#    echo "ROTATION EVENT : $line" | grep "Accelerometer orientation changed"
+
+   if [[ $line == *"normal"* ]] ; then
+      echo "CASE1"
+    elif [[ $line == *"bottom-up"* ]] ; then
+      echo "CASE2"
+    elif [[ $line == *"right-up"* ]] ; then
+      echo "CASE3"
+    elif [[ $line == *"left-up"* ]] ; then
+      echo "CASE4"
+    else
+      echo "Undefined action"
+    fi
+
+  fi
+done
+
+exit;
+
 monitor-sensor | awk '/Accelerometer orientation changed:/ { print $NF; fflush();}' | while read line
 do
+    echo "DEBUG: $line"
     # If we have external monitor connected, do not rotate
     nscreens=$(xrandr  | grep -c " connected")
     if [ $nscreens != 1 ]
