@@ -9,7 +9,7 @@ DISPLAY=:0
 export DISPLAY
 
 rotate_cursor() {
-    pointers=$(xinput list | awk '/Virtual core pointer/ { printing=1 } /Virtual core keyboard/ { printing=0} { if (printing && (match($0, '/ELAN/) || match($0, /Pen/) || match($0, /Touch/) )) { gsub(".*id=",""); print $1 } }')
+    pointers=$(xinput list | awk '/Virtual core pointer/ { printing=1 } /Virtual core keyboard/ { printing=0} { if (printing && (match($0, /ELAN/) || match($0, /Pen/) || match($0, /Touch/) )) { gsub(".*id=",""); print $1 } }')
     echo "rotate -- pointers: <<$pointers>> matrix: <<$*>>"
     for p in $pointers
     do
