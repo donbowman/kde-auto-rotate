@@ -13,3 +13,15 @@ This relies on `gawk` being installed, and `iio-sensor-proxy`.
 You may need:
 
 `apt-get install gawk iio-sensor-proxy`
+
+## Backdrop
+
+If you wish to have the backdrop change automatically on rotation,
+you can create these 4 files in ~/.config/auto-rotate:
+
+- normal.jpg
+- bottom-up.jpg
+- right-up.jpg
+- left-up.jpg
+
+Make each image be the exact backdrop you want, as a JPEG.

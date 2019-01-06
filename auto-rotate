@@ -8,6 +8,27 @@
 DISPLAY=:0
 export DISPLAY
 
+install_background() {
+
+    export BACKDROP=~/.config/auto-rotate/${1}.jpg
+    if [ -f $BACKDROP ]
+    then
+cat << EOF | sh
+    dbus-send --session --dest=org.kde.plasmashell --type=method_call /PlasmaShell org.kde.PlasmaShell.evaluateScript 'string:
+    var Desktops = desktops();
+    for (i=0;i<Desktops.length;i++) {
+            d = Desktops[i];
+            d.wallpaperPlugin = "org.kde.image";
+            d.currentConfigGroup = Array("Wallpaper",
+                                        "org.kde.image",
+                                        "General");
+            d.writeConfig("Image", "file://$BACKDROP");
+    }'
+EOF
+    fi
+
+}
+
 rotate_cursor() {
     pointers=$(xinput list | awk '/Virtual core pointer/ { printing=1 } /Virtual core keyboard/ { printing=0} { if (printing && (match($0, /ELAN/) || match($0, /Pen/) || match($0, /Touch/) )) { gsub(".*id=",""); print $1 } }')
     echo "rotate -- pointers: <<$pointers>> matrix: <<$*>>"
@@ -32,26 +53,30 @@ do
         normal)
             # re-enable backlight
             dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:1
-            xrandr --output eDP-1 --rotate normal 
+            xrandr --output eDP-1 --rotate normal
             rotate_cursor 1 0 0 0 1 0 0 0 1
+            install_background normal
             ;;
         bottom-up)
             # disable backlight
             dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
-            xrandr --output eDP-1 --rotate inverted 
+            xrandr --output eDP-1 --rotate inverted
             rotate_cursor -1 0 1 0 -1 1 0 0 1
+            install_background bottom-up
             ;;
         right-up)
             # disable backlight
             dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
-            xrandr --output eDP-1 --rotate right 
+            xrandr --output eDP-1 --rotate right
             rotate_cursor 0 1 0 -1 0 1 0 0 1
+            install_background right-up
             ;;
         left-up)
             # disable backlight
             dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
             xrandr --output eDP-1 --rotate left
             rotate_cursor 0 -1 1 1 0 0 0 0 1
+            install_background left-up
             ;;
     esac
 done
