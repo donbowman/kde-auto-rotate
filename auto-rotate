@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export DISPLAY=":0"
+
 #
 # auto-rotate the screen and pointers
 # copyright 2018 Don Bowman (db@donbowman.ca)
@@ -14,7 +16,7 @@ rotate_cursor() {
     for pointerId in $pointers
     do
         echo "Adjusting pointer $pointerId"
-        xinput set-prop $pointerId "Coordinate Transformation Matrix" $*
+        DISPLAY=":0" xinput set-prop $pointerId "Coordinate Transformation Matrix" $*
     done
 }
 
@@ -33,19 +35,65 @@ function get_wacom_ids() {
   currentDevices=$(xsetwacom --list devices | awk '{print $7}')
   echo "$pastDevices" | uniq > /tmp/kde-rotate-wacom-ids
   echo "$currentDevices" | uniq > /tmp/kde-rotate-wacom-ids
-  allDevices="$(cat /tmp/kde-rotate-wacom-ids | uniq)"
+  allDevices="$(cat /tmp/kde-rotate-wacom-ids | uniq) STYLUS ERASER"
   echo $allDevices;
 }
 
 # https://github.com/linuxwacom/xf86-input-wacom/wiki/Rotation
 rotate_stylus() {
-    wacomDevices=$(get_wacom_ids)
+    wacomDevices=$(DISPLAY=":0" get_wacom_ids)
 
     for deviceId in $wacomDevices ; do
       echo "Changing rotation on wacom device $deviceId to $1";
-      xsetwacom set "$deviceId" rotate $1
+      DISPLAY=":0" xsetwacom set "$deviceId" rotate $1
     done
 }
+
+# Loop and listen to monitor-sensor output lines which discuss orientation changes
+monitor-sensor | while read line ; do
+
+  # Ignore any lines which are not rotation events
+  echo "$line" | grep "Accelerometer orientation changed" &> /dev/null
+  export ret="$?"
+  if [ "$ret" -ne "0" ] ; then
+    # echo "SKIPED LINE: $line"
+    continue
+  fi
+
+    printf "ROTATED "
+
+    DISPLAY="eDP-1"
+
+    # Handle each case
+    if [[ $line == *"normal"* ]] ; then
+        echo "NORMAL"
+          DISPLAY=":0"  xrandr --output $DISPLAY --rotate normal
+            rotate_cursor 1 0 0 0 1 0 0 0 1
+            rotate_stylus none
+    elif [[ $line == *"bottom-up"* ]] ; then
+       echo "UPSIDE DOWN"
+            DISPLAY=":0"  xrandr --output $DISPLAY --rotate inverted
+            rotate_cursor -1 0 1 0 -1 1 0 0 1
+            rotate_stylus half
+    elif [[ $line == *"right-up"* ]] ; then
+       echo "TO THE LEFT"
+            DISPLAY=":0"  xrandr --output $DISPLAY --rotate right
+            rotate_cursor 0 1 0 -1 0 1 0 0 1
+            rotate_stylus cw
+    elif [[ $line == *"left-up"* ]] ; then
+       echo "TO THE RIGHT"
+            DISPLAY=":0"  xrandr --output $DISPLAY --rotate left
+            rotate_cursor 0 -1 1 1 0 0 0 0 1
+            rotate_stylus ccw
+    else
+      echo "Undefined action"
+    fi
+
+
+
+
+done
+
 
 
 # Main method handling rotation
