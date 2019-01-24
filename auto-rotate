@@ -78,13 +78,17 @@ monitor-sensor | while read line ; do
     elif [[ $line == *"right-up"* ]] ; then
        echo "TO THE LEFT"
             DISPLAY=":0"  xrandr --output $DISPLAY --rotate right
-            rotate_cursor 0 1 0 -1 0 1 0 0 1
-            rotate_stylus cw
+#            rotate_cursor 0 1 0 -1 0 1 0 0 1
+            rotate_cursor 0 -1 1 1 0 0 0 0 1
+#            rotate_stylus cw
+            rotate_stylus ccw
     elif [[ $line == *"left-up"* ]] ; then
        echo "TO THE RIGHT"
             DISPLAY=":0"  xrandr --output $DISPLAY --rotate left
-            rotate_cursor 0 -1 1 1 0 0 0 0 1
-            rotate_stylus ccw
+#            rotate_cursor 0 -1 1 1 0 0 0 0 1
+            rotate_cursor 0 1 0 -1 0 1 0 0 1
+#            rotate_stylus ccw
+            rotate_stylus cw
     else
       echo "Undefined action"
     fi
