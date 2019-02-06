@@ -35,8 +35,10 @@ rotate_cursor() {
 function get_wacom_ids() {
   pastDevices="$(cat /tmp/kde-rotate-wacom-ids | uniq)"
   currentDevices=$(xsetwacom --list devices | awk '{print $7}')
-  echo "$pastDevices" | uniq > /tmp/kde-rotate-wacom-ids
-  echo "$currentDevices" | uniq > /tmp/kde-rotate-wacom-ids
+  # combine current and past items into a single nonduplicated list
+#  echo "$currentDevices $pastDevices" | sort | uniq > /tmp/kde-rotate-wacom-ids
+  echo "$currentDevices $pastDevices" |  sed -e 's/ /\n/g' | sort | uniq > /tmp/kde-rotate-wacom-ids
+#  echo "$currentDevices" | uniq >> /tmp/kde-rotate-wacom-ids
   allDevices="$(cat /tmp/kde-rotate-wacom-ids | uniq) STYLUS ERASER"
   echo $allDevices;
 }
