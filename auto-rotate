@@ -2,6 +2,8 @@
 
 export DISPLAY=":0"
 
+
+
 #
 # auto-rotate the screen and pointers
 # copyright 2018 Don Bowman (db@donbowman.ca)
@@ -12,7 +14,7 @@ pointers=$(xinput list | awk '/Virtual core pointer/ { printing=1 } /Virtual cor
 
 # This function
 rotate_cursor() {
-    # Apply ttansformations to all pointers
+    # Apply tansformations to all pointers
     for pointerId in $pointers
     do
         echo "Adjusting pointer $pointerId"
@@ -45,6 +47,7 @@ rotate_stylus() {
 
     for deviceId in $wacomDevices ; do
       echo "Changing rotation on wacom device $deviceId to $1";
+# disabling stylus rotation here, since that's handled by the wacom tab driver
       DISPLAY=":0" xsetwacom set "$deviceId" rotate $1
     done
 }
@@ -67,28 +70,28 @@ monitor-sensor | while read line ; do
     # Handle each case
     if [[ $line == *"normal"* ]] ; then
         echo "NORMAL"
-          DISPLAY=":0"  xrandr --output $DISPLAY --rotate normal
             rotate_cursor 1 0 0 0 1 0 0 0 1
             rotate_stylus none
+          DISPLAY=":0"  xrandr --output $DISPLAY --rotate normal
     elif [[ $line == *"bottom-up"* ]] ; then
        echo "UPSIDE DOWN"
-            DISPLAY=":0"  xrandr --output $DISPLAY --rotate inverted
             rotate_cursor -1 0 1 0 -1 1 0 0 1
             rotate_stylus half
+            DISPLAY=":0"  xrandr --output $DISPLAY --rotate inverted
     elif [[ $line == *"right-up"* ]] ; then
        echo "TO THE LEFT"
+            rotate_cursor 0 1 0 -1 0 1 0 0 1
+#            rotate_cursor 0 -1 1 1 0 0 0 0 1
+            rotate_stylus cw
+#            rotate_stylus ccw
             DISPLAY=":0"  xrandr --output $DISPLAY --rotate right
-#            rotate_cursor 0 1 0 -1 0 1 0 0 1
-            rotate_cursor 0 -1 1 1 0 0 0 0 1
-#            rotate_stylus cw
-            rotate_stylus ccw
     elif [[ $line == *"left-up"* ]] ; then
        echo "TO THE RIGHT"
+            rotate_cursor 0 -1 1 1 0 0 0 0 1
+#            rotate_cursor 0 1 0 -1 0 1 0 0 1
+            rotate_stylus ccw
+#            rotate_stylus cw
             DISPLAY=":0"  xrandr --output $DISPLAY --rotate left
-#            rotate_cursor 0 -1 1 1 0 0 0 0 1
-            rotate_cursor 0 1 0 -1 0 1 0 0 1
-#            rotate_stylus ccw
-            rotate_stylus cw
     else
       echo "Undefined action"
     fi
