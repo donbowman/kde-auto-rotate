@@ -9,7 +9,29 @@ export DISPLAY=":0"
 # copyright 2018 Don Bowman (db@donbowman.ca)
 # Licensed under Apache License, Version 2.0
 
-pointers=$(xinput list | awk '/Virtual core pointer/ { printing=1 } /Virtual core keyboard/ { printing=0} { if (printing) { gsub(".*id=",""); print $1 } }')
+DISPLAY=:0
+export DISPLAY
+
+install_background() {
+
+    export BACKDROP=~/.config/auto-rotate/${1}.jpg
+    if [ -f $BACKDROP ]
+    then
+cat << EOF | sh
+    dbus-send --session --dest=org.kde.plasmashell --type=method_call /PlasmaShell org.kde.PlasmaShell.evaluateScript 'string:
+    var Desktops = desktops();
+    for (i=0;i<Desktops.length;i++) {
+            d = Desktops[i];
+            d.wallpaperPlugin = "org.kde.image";
+            d.currentConfigGroup = Array("Wallpaper",
+                                        "org.kde.image",
+                                        "General");
+            d.writeConfig("Image", "file://$BACKDROP");
+    }'
+EOF
+    fi
+
+}
 
 
 # This function
