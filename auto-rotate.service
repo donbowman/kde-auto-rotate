@@ -9,6 +9,7 @@ After=network.target
 
 [Service]
 Environment=DISPLAY=:0
+User=benyanke
 ExecStart=/home/don/bin/auto-rotate
 Restart=on-failure
 SuccessExitStatus=3 4
