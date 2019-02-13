@@ -89,7 +89,11 @@ monitor-sensor | while read line ; do
 
     printf "ROTATED "
 
-    DISPLAY="eDP-1"
+    # TODO : make this dynamic
+    # lenovo
+#    DISPLAY="eDP-1"
+    # hp stream
+    DISPLAY="DSI-1"
 
     # Handle each case
     if [[ $line == *"normal"* ]] ; then
