@@ -5,6 +5,9 @@
 # Licensed under Apache License, Version 2.0
 #
 
+# TODO: handle replacement of full path in file before copying
+
+
 mkdir -p ~/.config/auto-rotate
 dir=$(dirname "$(readlink -f "$0")")
 mkdir -p ~/.config/systemd/user
