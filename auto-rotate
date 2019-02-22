@@ -57,10 +57,7 @@ rotate_cursor() {
 function get_wacom_ids() {
   pastDevices="$(cat /tmp/kde-rotate-wacom-ids | uniq)"
   currentDevices=$(xsetwacom --list devices | awk '{print $7}')
-  # combine current and past items into a single nonduplicated list
-#  echo "$currentDevices $pastDevices" | sort | uniq > /tmp/kde-rotate-wacom-ids
   echo "$currentDevices $pastDevices" |  sed -e 's/ /\n/g' | sort | uniq > /tmp/kde-rotate-wacom-ids
-#  echo "$currentDevices" | uniq >> /tmp/kde-rotate-wacom-ids
   allDevices="$(cat /tmp/kde-rotate-wacom-ids | uniq) STYLUS ERASER"
   echo $allDevices;
 }
@@ -86,40 +83,35 @@ monitor-sensor | while read line ; do
     # echo "SKIPED LINE: $line"
     continue
   fi
-
+    # Debugging line
     printf "ROTATED "
 
-    # TODO : make this dynamic
-    # lenovo
-#    DISPLAY="eDP-1"
-    # hp stream
-    DISPLAY="DSI-1"
+    # Fetch the display name from xrandr
+    # example values: eDP-1 or DSI-1
+    DISPLAYNAME="`xrandr | grep ' connected' | tail -n 1 | awk '{print $1}'`"
 
     # Handle each case
     if [[ $line == *"normal"* ]] ; then
         echo "NORMAL"
             rotate_cursor 1 0 0 0 1 0 0 0 1
             rotate_stylus none
-          DISPLAY=":0"  xrandr --output $DISPLAY --rotate normal
+          DISPLAY=":0"  xrandr --output $DISPLAYNAME --rotate normal
     elif [[ $line == *"bottom-up"* ]] ; then
        echo "UPSIDE DOWN"
             rotate_cursor -1 0 1 0 -1 1 0 0 1
             rotate_stylus half
-            DISPLAY=":0"  xrandr --output $DISPLAY --rotate inverted
+            DISPLAY=":0"  xrandr --output $DISPLAYNAME --rotate inverted
     elif [[ $line == *"right-up"* ]] ; then
        echo "TO THE LEFT"
             rotate_cursor 0 1 0 -1 0 1 0 0 1
 #            rotate_cursor 0 -1 1 1 0 0 0 0 1
             rotate_stylus cw
-#            rotate_stylus ccw
-            DISPLAY=":0"  xrandr --output $DISPLAY --rotate right
+            DISPLAY=":0"  xrandr --output $DISPLAYNAME --rotate right
     elif [[ $line == *"left-up"* ]] ; then
        echo "TO THE RIGHT"
-            rotate_cursor 0 -1 1 1 0 0 0 0 1
-#            rotate_cursor 0 1 0 -1 0 1 0 0 1
+            rotate_cursor 0 1 0 -1 0 1 0 0 1
             rotate_stylus ccw
-#            rotate_stylus cw
-            DISPLAY=":0"  xrandr --output $DISPLAY --rotate left
+            DISPLAY=":0"  xrandr --output $DISPLAYNAME --rotate left
     else
       echo "Undefined action"
     fi
