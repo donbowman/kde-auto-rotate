@@ -1,4 +1,8 @@
-#!/bin/sh
+#!/bin/bash
+
+export DISPLAY=":0"
+
+
 
 #
 # auto-rotate the screen and pointers
@@ -29,55 +33,135 @@ EOF
 
 }
 
+
+# This function
 rotate_cursor() {
-    pointers=$(xinput list | awk '/Virtual core pointer/ { printing=1 } /Virtual core keyboard/ { printing=0} { if (printing && (match($0, /ELAN/) || match($0, /Pen/) || match($0, /Touch/) )) { gsub(".*id=",""); print $1 } }')
-    echo "rotate -- pointers: <<$pointers>> matrix: <<$*>>"
-    for p in $pointers
+    # Apply tansformations to all pointers
+    for pointerId in $pointers
     do
-        xinput set-prop $p "Coordinate Transformation Matrix" $*
+        echo "Adjusting pointer $pointerId"
+        DISPLAY=":0" xinput set-prop $pointerId "Coordinate Transformation Matrix" $*
     done
 }
 
-monitor-sensor | awk '/Accelerometer orientation changed:/ { print $NF; fflush();}' | while read line
-do
-    echo $line
-    # If we have external monitor connected, do not rotate
-    nscreens=$(xrandr  | grep -c " connected")
-    if [ $nscreens != 1 ]
-    then
-        line=normal
+# This function fetches every currently known wacom device,
+# appends it to the list of previously seen devices, and then
+# dedupes the list.
+# This is important because xsetwacom only returns devices which
+# have touched the screeen in the last several seconds, so we need
+# to keep track of device IDs we've ever seen so we can update their rotational
+# status even if they haven't been used lately
+#
+# Finally, the function echos the device IDs found through this process, so the
+# output can be captured and used.
+function get_wacom_ids() {
+  pastDevices="$(cat /tmp/kde-rotate-wacom-ids | uniq)"
+  currentDevices=$(xsetwacom --list devices | awk '{print $7}')
+  echo "$currentDevices $pastDevices" |  sed -e 's/ /\n/g' | sort | uniq > /tmp/kde-rotate-wacom-ids
+  allDevices="$(cat /tmp/kde-rotate-wacom-ids | uniq) STYLUS ERASER"
+  echo $allDevices;
+}
+
+# https://github.com/linuxwacom/xf86-input-wacom/wiki/Rotation
+rotate_stylus() {
+    wacomDevices=$(DISPLAY=":0" get_wacom_ids)
+
+    for deviceId in $wacomDevices ; do
+      echo "Changing rotation on wacom device $deviceId to $1";
+# disabling stylus rotation here, since that's handled by the wacom tab driver
+      DISPLAY=":0" xsetwacom set "$deviceId" rotate $1
+    done
+}
+
+# Loop and listen to monitor-sensor output lines which discuss orientation changes
+monitor-sensor | while read line ; do
+
+  # Ignore any lines which are not rotation events
+  echo "$line" | grep "Accelerometer orientation changed" &> /dev/null
+  export ret="$?"
+  if [ "$ret" -ne "0" ] ; then
+    # echo "SKIPED LINE: $line"
+    continue
+  fi
+    # Debugging line
+    printf "ROTATED "
+
+    # Fetch the display name from xrandr
+    # example values: eDP-1 or DSI-1
+    DISPLAYNAME="`xrandr | grep ' connected' | tail -n 1 | awk '{print $1}'`"
+
+    # Handle each case
+    if [[ $line == *"normal"* ]] ; then
+        echo "NORMAL"
+            rotate_cursor 1 0 0 0 1 0 0 0 1
+            rotate_stylus none
+          DISPLAY=":0"  xrandr --output $DISPLAYNAME --rotate normal
+    elif [[ $line == *"bottom-up"* ]] ; then
+       echo "UPSIDE DOWN"
+            rotate_cursor -1 0 1 0 -1 1 0 0 1
+            rotate_stylus half
+            DISPLAY=":0"  xrandr --output $DISPLAYNAME --rotate inverted
+    elif [[ $line == *"right-up"* ]] ; then
+       echo "TO THE LEFT"
+            rotate_cursor 0 1 0 -1 0 1 0 0 1
+#            rotate_cursor 0 -1 1 1 0 0 0 0 1
+            rotate_stylus cw
+            DISPLAY=":0"  xrandr --output $DISPLAYNAME --rotate right
+    elif [[ $line == *"left-up"* ]] ; then
+       echo "TO THE RIGHT"
+            rotate_cursor 0 1 0 -1 0 1 0 0 1
+            rotate_stylus ccw
+            DISPLAY=":0"  xrandr --output $DISPLAYNAME --rotate left
+    else
+      echo "Undefined action"
     fi
 
-    # Set the actions to be taken for each possible orientation
-    case "$line" in
-        normal)
-            # re-enable backlight
-            dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:1
+
+
+
+done
+
+
+
+# Main method handling rotation
+monitor-sensor | while read line ; do
+
+  # Ignore any lines which are not rotation events
+  echo "$line" | grep "orientation" &> /dev/null
+  export ret="$?"
+  if [ "$ret" -ne "0" ] ; then
+    echo "SKIP"
+    continue
+  else
+
+  # Don't rotate if external monitor connected
+  nscreens=$(xrandr  | grep -c " connected")
+  if [ $nscreens != 1 ]; then
+      line=normal
+  fi
+
+    # Handle each case
+    if [[ $line == *"normal"* ]] ; then
             xrandr --output eDP-1 --rotate normal
             rotate_cursor 1 0 0 0 1 0 0 0 1
-            install_background normal
-            ;;
-        bottom-up)
-            # disable backlight
-            dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
+            rotate_stylus none
+    elif [[ $line == *"bottom-up"* ]] ; then
             xrandr --output eDP-1 --rotate inverted
             rotate_cursor -1 0 1 0 -1 1 0 0 1
-            install_background bottom-up
-            ;;
-        right-up)
-            # disable backlight
-            dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
+            rotate_stylus half
+    elif [[ $line == *"right-up"* ]] ; then
             xrandr --output eDP-1 --rotate right
             rotate_cursor 0 1 0 -1 0 1 0 0 1
-            install_background right-up
-            ;;
-        left-up)
-            # disable backlight
-            dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
+            rotate_stylus cw
+    elif [[ $line == *"left-up"* ]] ; then
             xrandr --output eDP-1 --rotate left
             rotate_cursor 0 -1 1 1 0 0 0 0 1
-            install_background left-up
-            ;;
-    esac
+            rotate_stylus ccw
+    else
+      echo "Undefined action"
+    fi
+
+  fi
 done
+
 exit 0

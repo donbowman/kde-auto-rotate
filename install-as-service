@@ -5,10 +5,14 @@
 # Licensed under Apache License, Version 2.0
 #
 
+# TODO: handle replacement of full path in file before copying
+
+
 mkdir -p ~/.config/auto-rotate
 dir=$(dirname "$(readlink -f "$0")")
 mkdir -p ~/.config/systemd/user
 sed -e "s?ExecStart=.*?ExecStart=$dir/auto-rotate?" < auto-rotate.service > ~/.config/systemd/user/auto-rotate.service
+# sed -i "s?ExecStart=.*?ExecStart=$dir/auto-rotate?"  ~/.config/systemd/user/auto-rotate.service
 systemctl --user enable auto-rotate
 systemctl --user start auto-rotate
 
