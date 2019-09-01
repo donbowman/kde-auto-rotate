@@ -38,7 +38,7 @@ rotate_cursor() {
     done
 }
 
-monitor-sensor | awk '/Accelerometer orientation changed:/ { print $NF; fflush();}' | while read line
+monitor-sensor | awk -W interactive '/Accelerometer orientation changed:/ { print $NF; fflush();}' | while read line
 do
     echo $line
     # If we have external monitor connected, do not rotate
