@@ -11,7 +11,7 @@ export DISPLAY
 install_background() {
 
     export BACKDROP=~/.config/auto-rotate/${1}.jpg
-    if [ -f $BACKDROP ]
+    if [ -f "$BACKDROP" ]
     then
 cat << EOF | sh
     dbus-send --session --dest=org.kde.plasmashell --type=method_call /PlasmaShell org.kde.PlasmaShell.evaluateScript 'string:
@@ -34,16 +34,16 @@ rotate_cursor() {
     echo "rotate -- pointers: <<$pointers>> matrix: <<$*>>"
     for p in $pointers
     do
-        xinput set-prop $p "Coordinate Transformation Matrix" $*
+        xinput set-prop "$p" "Coordinate Transformation Matrix" $*
     done
 }
 
 monitor-sensor | awk -W interactive '/Accelerometer orientation changed:/ { print $NF; fflush();}' | while read line
 do
-    echo $line
+    echo "$line"
     # If we have external monitor connected, do not rotate
     nscreens=$(xrandr  | grep -c " connected")
-    if [ $nscreens != 1 ]
+    if [ "$nscreens" != 1 ]
     then
         line=normal
     fi
