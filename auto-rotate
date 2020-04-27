@@ -54,7 +54,7 @@ do
     case "$line" in
         normal)
             # re-enable backlight
-            #dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:1
+            dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:1
             xinput enable 14
             xrandr --output "$MAIN_SCREEN" --rotate normal
             rotate_cursor 1 0 0 0 1 0 0 0 1
@@ -62,7 +62,7 @@ do
             ;;
         bottom-up)
             # disable backlight
-            #dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
+            dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
             xinput disable 14
             xrandr --output "$MAIN_SCREEN" --rotate inverted
             rotate_cursor -1 0 1 0 -1 1 0 0 1
@@ -70,7 +70,7 @@ do
             ;;
         right-up)
             # disable backlight
-            #dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
+            dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
             xinput disable 14
             xrandr --output "$MAIN_SCREEN" --rotate right
             rotate_cursor 0 1 0 -1 0 1 0 0 1
@@ -78,7 +78,7 @@ do
             ;;
         left-up)
             # disable backlight
-            #dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
+            dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
             xinput disable 14
             xrandr --output "$MAIN_SCREEN" --rotate left
             rotate_cursor 0 -1 1 1 0 0 0 0 1
