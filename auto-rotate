@@ -38,6 +38,13 @@ rotate_cursor() {
     done
 }
 
+remove_keyboard(){
+    keyboard=$(xinput list | mawk -W interactive '/Virtual core pointer/ { printing=0 } /Virtual core keyboard/ { printing=1} { if (printing && (match($0, /AT Translated Set 2 keyboard/))) { gsub(".*id=",""); print $1 } }')
+    xinput ${1} $keyboard
+    echo Keyboard ${1}"d"
+}
+
+
 MAIN_SCREEN=$(xrandr --current | grep connected | mawk -W interactive '/primary/ {print $1}')
 echo "$MAIN_SCREEN"
 monitor-sensor | mawk -W interactive '/Accelerometer orientation changed:/ { print $NF; fflush();}' | while read -r line
@@ -54,32 +61,32 @@ do
     case "$line" in
         normal)
             # re-enable backlight
-            #dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:1
-            xinput enable 14
+            dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:1
+            remove_keyboard enable
             xrandr --output "$MAIN_SCREEN" --rotate normal
             rotate_cursor 1 0 0 0 1 0 0 0 1
             install_background normal
             ;;
         bottom-up)
             # disable backlight
-            #dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
-            xinput disable 14
+            dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
+            remove_keyboard disable
             xrandr --output "$MAIN_SCREEN" --rotate inverted
             rotate_cursor -1 0 1 0 -1 1 0 0 1
             install_background bottom-up
             ;;
         right-up)
             # disable backlight
-            #dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
-            xinput disable 14
+            dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
+            remove_keyboard disable
             xrandr --output "$MAIN_SCREEN" --rotate right
             rotate_cursor 0 1 0 -1 0 1 0 0 1
             install_background right-up
             ;;
         left-up)
             # disable backlight
-            #dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
-            xinput disable 14
+            dbus-send --print-reply=literal --type=method_call --system --dest=org.freedesktop.UPower /org/freedesktop/UPower/KbdBacklight org.freedesktop.UPower.KbdBacklight.SetBrightness int32:0
+            remove_keyboard disable
             xrandr --output "$MAIN_SCREEN" --rotate left
             rotate_cursor 0 -1 1 1 0 0 0 0 1
             install_background left-up
