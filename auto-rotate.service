@@ -5,11 +5,14 @@
 #
 [Unit]
 Description=auto-rotate screen
-After=network.target
+After=graphical-session-pre.target
+Wants=graphical-session-pre.target
+BindsTo=graphical-session.target
 
 [Service]
 Environment=DISPLAY=:0
-ExecStart=/home/don/bin/auto-rotate
+ExecStartPre=/bin/sleep 10
+ExecStart=/usr/local/bin/auto-rotate
 Restart=on-failure
 SuccessExitStatus=3 4
 RestartForceExitStatus=3 4
