@@ -1,5 +1,12 @@
 # kde-auto-rotate
 
+** NOTE **
+I no longer use a convertible, so i have not updated this.
+It does still work for many people, so feel free to try.
+If someone wants to fork and maintain, I'm certainly not
+going to stop you :)
+** END NOTE **
+
 This script allows a convertible tablet to work with KDE for
 auto-rotation. It causes all pointers to also rotate orientation.
 
